@@ -14,7 +14,6 @@ public class ProfessorController {
     private ProfessorService service;
 
     @GetMapping
-    @roles("professor")
     public List<Professor> getAll() { return service.findAll(); }
 
     @GetMapping("/{id}")
