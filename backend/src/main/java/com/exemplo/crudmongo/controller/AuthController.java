@@ -9,6 +9,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.HashMap;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -31,10 +32,17 @@ public class AuthController {
             Authentication auth = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(username, password)
             );
-            String token = jwtUtil.generateToken(username);
-            return Map.of("token", token);
+            String role = auth.getAuthorities().stream()
+                    .findFirst()
+                    .map(a -> a.getAuthority().replace("ROLE_", ""))
+                    .orElse("USER");
+            String token = jwtUtil.generateToken(username, role);
+            Map<String, String> response = new HashMap<>();
+            response.put("token", token);
+            response.put("role", role);
+            return response;
         } catch (AuthenticationException e) {
-            throw new RuntimeException("Usu√°rio ou senha inv√°lidos");
+            throw new RuntimeException("Usu·rio ou senha inv·lidos");
         }
     }
 
@@ -42,8 +50,11 @@ public class AuthController {
     public Map<String, String> register(@RequestBody Map<String, String> body) {
         String username = body.get("username");
         String password = body.get("password");
-        String role = body.getOrDefault("role", "USER");
+        String role = body.getOrDefault("role", "ALUNO");
+        if (!role.equals("ALUNO") && !role.equals("PROFESSOR")) {
+            throw new RuntimeException("Role inv·lida. Use ALUNO ou PROFESSOR.");
+        }
         usuarioService.salvarUsuario(username, password, role);
-        return Map.of("message", "Usu√°rio registrado com sucesso");
+        return Map.of("message", "Usu·rio registrado com sucesso");
     }
 }
