@@ -16,9 +16,9 @@ public class UsuarioDataLoader {
                 usuarioService.salvarUsuario("professor", "prof123", "PROFESSOR");
                 System.out.println("? Usuário 'professor' criado (role: PROFESSOR)");
             }
-            if (usuarioRepository.findByUsername("aluno").isEmpty()) {
-                usuarioService.salvarUsuario("aluno", "aluno123", "ALUNO");
-                System.out.println("? Usuário 'aluno' criado (role: ALUNO)");
+            if (usuarioRepository.findByUsername("usuario").isEmpty()) {
+                usuarioService.salvarUsuario("usuario", "user123", "USER");
+                System.out.println("? Usuário 'usuario' criado (role: USER)");
             }
         };
     }

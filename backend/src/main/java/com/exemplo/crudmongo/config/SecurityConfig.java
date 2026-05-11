@@ -3,7 +3,6 @@ package com.exemplo.crudmongo.config;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -32,15 +31,9 @@ public class SecurityConfig {
 
                 // apenas PROFESSOR pode registrar novos usuários
                 .requestMatchers("/api/auth/register").hasRole("PROFESSOR")
-                
-                // ALUNO e PROFESSOR podem fazer leituras
-                .requestMatchers(HttpMethod.GET, "/**").hasAnyRole("ALUNO", "PROFESSOR")
-                
-                // apenas PROFESSOR pode criar, editar e excluir
-                .requestMatchers(HttpMethod.POST, "/**").hasRole("PROFESSOR")
-                .requestMatchers(HttpMethod.PUT, "/**").hasRole("PROFESSOR")
-                .requestMatchers(HttpMethod.DELETE, "/**").hasRole("PROFESSOR")
-                .anyRequest().hasRole("PROFESSOR")
+
+                // demais rotas exigem autenticação; regras finas ficam em @PreAuthorize
+                .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
