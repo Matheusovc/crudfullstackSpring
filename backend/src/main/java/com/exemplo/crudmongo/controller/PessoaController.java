@@ -2,7 +2,7 @@ package com.exemplo.crudmongo.controller;
 
 import com.exemplo.crudmongo.Model.Pessoa;
 import com.exemplo.crudmongo.service.PessoaService;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,25 +18,36 @@ public class PessoaController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('PROFESSOR', 'ALUNO')")
     public List<Pessoa> listar() {
         return service.listarTodas();
     }
 
+    @GetMapping("/nome")
+    public List<Pessoa> buscarPorNome(@RequestParam("valor") String nome) {
+        return service.buscarPorNome(nome);
+    }
+
+    @GetMapping("/idade")
+    public List<Pessoa> buscarPorIdade(@RequestParam("valor") Integer idade) {
+        return service.buscarPorIdade(idade);
+    }
+
+    @GetMapping("/pagina")
+    public Page<Pessoa> listarPaginado(@RequestParam(defaultValue = "0") int numero, @RequestParam(defaultValue = "10") int tamanho) {
+        return service.listarPaginado(numero, tamanho);
+    }
+
     @PostMapping
-    @PreAuthorize("hasRole('PROFESSOR')")
     public Pessoa criar(@RequestBody Pessoa pessoa) {
         return service.salvar(pessoa);
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('PROFESSOR')")
     public Pessoa atualizar(@PathVariable Long id, @RequestBody Pessoa pessoa) {
         return service.atualizar(id, pessoa);
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('PROFESSOR')")
     public void excluir(@PathVariable Long id) {
         service.excluir(id);
     }

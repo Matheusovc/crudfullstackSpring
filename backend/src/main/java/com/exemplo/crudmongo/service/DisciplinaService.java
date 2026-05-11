@@ -1,19 +1,38 @@
 package com.exemplo.crudmongo.service;
 
+import java.util.List;
+
+import org.springframework.stereotype.Service;
 import com.exemplo.crudmongo.Model.Disciplina;
 import com.exemplo.crudmongo.repository.DisciplinaRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import java.util.List;
-import java.util.Optional;
 
 @Service
 public class DisciplinaService {
-    @Autowired
-    private DisciplinaRepository repository;
+    private final DisciplinaRepository repository;
+    
+    public DisciplinaService(DisciplinaRepository repository) {
+        this.repository = repository;
+    }
 
-    public List<Disciplina> findAll() { return repository.findAll(); }
-    public Optional<Disciplina> findById(Long id) { return repository.findById(id); }
-    public Disciplina save(Disciplina disciplina) { return repository.save(disciplina); }
-    public void deleteById(Long id) { repository.deleteById(id); }
+    public List<Disciplina> listarTodas() {
+        return repository.findAll();
+    }
+
+    public Disciplina salvar(Disciplina disciplina) {
+        return repository.save(disciplina);
+    }
+
+    public Disciplina atualizar(Long id, Disciplina novaDisciplina) {
+        return repository.findById(id).map(d -> {
+            d.setNome(novaDisciplina.getNome());
+            d.setCargaHoraria(novaDisciplina.getCargaHoraria());
+            d.setProfessorId(novaDisciplina.getProfessorId());
+            d.setAtivo(novaDisciplina.isAtivo());
+            return repository.save(d);
+        }).orElseThrow(() -> new RuntimeException("Disciplina não encontrada"));
+    }
+    
+    public void excluir(Long id) {
+        repository.deleteById(id);
+    }
 }

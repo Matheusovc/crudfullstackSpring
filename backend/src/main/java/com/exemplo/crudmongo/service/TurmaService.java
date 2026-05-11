@@ -1,19 +1,38 @@
 package com.exemplo.crudmongo.service;
 
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
 import com.exemplo.crudmongo.Model.Turma;
 import com.exemplo.crudmongo.repository.TurmaRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import java.util.List;
-import java.util.Optional;
 
 @Service
 public class TurmaService {
-    @Autowired
-    private TurmaRepository repository;
+    private final TurmaRepository repository; 
 
-    public List<Turma> findAll() { return repository.findAll(); }
-    public Optional<Turma> findById(Long id) { return repository.findById(id); }
-    public Turma save(Turma turma) { return repository.save(turma); }
-    public void deleteById(Long id) { repository.deleteById(id); }
+    public TurmaService(TurmaRepository repository) {
+        this.repository = repository;
+    }
+
+    public List<Turma> listarTodas() {
+        return repository.findAll();
+    }
+
+    public Turma salvar(Turma turma) {
+        return repository.save(turma);
+    }
+
+    public Turma atualizar(@PathVariable Long id,  Turma novaTurma) {
+        return repository.findById(id).map(t -> {
+            t.setNome(novaTurma.getNome());
+            t.setAno(novaTurma.getAno());
+            t.setAtivo(novaTurma.isAtivo());
+            return repository.save(t);
+        }).orElseThrow(() -> new RuntimeException("Turma não encontrada"));
+    }
+
+    public void excluir(Long id) {
+        repository.deleteById(id);
+    }
 }

@@ -2,38 +2,39 @@ package com.exemplo.crudmongo.controller;
 
 import com.exemplo.crudmongo.Model.Disciplina;
 import com.exemplo.crudmongo.service.DisciplinaService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import java.util.List;
-import java.util.Optional;
 
-@RestController
-@RequestMapping("/disciplinas")
+import java.util.List;
+
+@RestController 
+@RequestMapping({"/api/disciplinas", "/api/Disciplinas"}) 
+@CrossOrigin(origins = "*") 
+
 public class DisciplinaController {
-    @Autowired
-    private DisciplinaService service;
+     private final DisciplinaService service; 
+
+    public DisciplinaController(DisciplinaService service) {
+        this.service = service;
+    }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('PROFESSOR', 'ALUNO')")
-    public List<Disciplina> getAll() { return service.findAll(); }
-
-    @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('PROFESSOR', 'ALUNO')")
-    public Optional<Disciplina> getById(@PathVariable Long id) { return service.findById(id); }
+    public List<Disciplina> listar() {
+        return service.listarTodas();
+    }
 
     @PostMapping
-    @PreAuthorize("hasRole('PROFESSOR')")
-    public Disciplina create(@RequestBody Disciplina disciplina) { return service.save(disciplina); }
-
+    public Disciplina criar(@RequestBody Disciplina disciplina) {
+        return service.salvar(disciplina);
+    }
+ 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('PROFESSOR')")
-    public Disciplina update(@PathVariable Long id, @RequestBody Disciplina disciplina) {
-        disciplina.setId(id);
-        return service.save(disciplina);
+    public Disciplina atualizar(@PathVariable Long id, 
+    @RequestBody Disciplina disciplina) {
+        return service.atualizar(id, disciplina);
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('PROFESSOR')")
-    public void delete(@PathVariable Long id) { service.deleteById(id); }
+    public void excluir(@PathVariable Long id) {
+        service.excluir(id);
+    }
 }

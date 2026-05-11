@@ -2,38 +2,39 @@ package com.exemplo.crudmongo.controller;
 
 import com.exemplo.crudmongo.Model.Matricula;
 import com.exemplo.crudmongo.service.MatriculaService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
-import java.util.Optional;
 
-@RestController
-@RequestMapping("/matriculas")
+@RestController 
+@RequestMapping({"/api/matriculas", "/api/matricula"}) 
+@CrossOrigin(origins = "*") 
+
 public class MatriculaController {
-    @Autowired
-    private MatriculaService service;
+     private final MatriculaService service; 
 
-    @GetMapping
-    @PreAuthorize("hasAnyRole('PROFESSOR', 'ALUNO')")
-    public List<Matricula> getAll() { return service.findAll(); }
-
-    @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('PROFESSOR', 'ALUNO')")
-    public Optional<Matricula> getById(@PathVariable Long id) { return service.findById(id); }
-
-    @PostMapping
-    @PreAuthorize("hasRole('PROFESSOR')")
-    public Matricula create(@RequestBody Matricula matricula) { return service.save(matricula); }
-
-    @PutMapping("/{id}")
-    @PreAuthorize("hasRole('PROFESSOR')")
-    public Matricula update(@PathVariable Long id, @RequestBody Matricula matricula) {
-        matricula.setId(id);
-        return service.save(matricula);
+    public MatriculaController(MatriculaService service) {
+        this.service = service;
     }
 
+    @GetMapping
+    public List<Matricula> listar() {
+        return service.listarTodas();
+    }
+
+    @PostMapping
+    public Matricula criar(@RequestBody Matricula matricula) {
+        return service.salvar(matricula);
+    }
+ 
+    @PutMapping("/{id}")
+    public Matricula atualizar(@PathVariable Long id, 
+    @RequestBody Matricula matricula) {
+        return service.atualizar(id, matricula);
+    }
+   
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('PROFESSOR')")
-    public void delete(@PathVariable Long id) { service.deleteById(id); }
+    public void excluir(@PathVariable Long id) {
+        service.excluir(id);
+    }
 }

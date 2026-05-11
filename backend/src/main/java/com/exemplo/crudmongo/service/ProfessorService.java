@@ -1,19 +1,38 @@
 package com.exemplo.crudmongo.service;
 
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
 import com.exemplo.crudmongo.Model.Professor;
 import com.exemplo.crudmongo.repository.ProfessorRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import java.util.List;
-import java.util.Optional;
 
 @Service
 public class ProfessorService {
-    @Autowired
-    private ProfessorRepository repository;
+    private final ProfessorRepository repository; 
 
-    public List<Professor> findAll() { return repository.findAll(); }
-    public Optional<Professor> findById(Long id) { return repository.findById(id); }
-    public Professor save(Professor professor) { return repository.save(professor); }
-    public void deleteById(Long id) { repository.deleteById(id); }
+    public ProfessorService(ProfessorRepository repository) {
+        this.repository = repository;
+    }
+
+    public List<Professor> listarTodas() {
+        return repository.findAll();
+    }
+
+    public Professor salvar(Professor professor) {
+        return repository.save(professor);
+    }
+
+    public Professor atualizar(@PathVariable Long id,  Professor novoProfessor) {
+        return repository.findById(id).map(p -> {
+            p.setNome(novoProfessor.getNome());
+            p.setArea(novoProfessor.getArea());
+            p.setAtivo(novoProfessor.isAtivo());
+            return repository.save(p);
+        }).orElseThrow(() -> new RuntimeException("Professor não encontrado"));
+    }
+
+    public void excluir(Long id) {
+        repository.deleteById(id);
+    }
 }

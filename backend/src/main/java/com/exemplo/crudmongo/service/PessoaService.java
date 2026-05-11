@@ -1,12 +1,16 @@
 package com.exemplo.crudmongo.service;
 
-import java.util.List;
-
-import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PathVariable;
-
 import com.exemplo.crudmongo.Model.Pessoa;
 import com.exemplo.crudmongo.repository.PessoaRepository;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.stereotype.Service;
+
+import org.springframework.web.bind.annotation.PathVariable;
+
+import java.util.List;
 
 @Service
 public class PessoaService {
@@ -20,6 +24,18 @@ public class PessoaService {
         return repository.findAll();
     }
 
+    public List<Pessoa> buscarPorNome(String nome) {
+        return repository.findByNomeContainingIgnoreCase(nome);
+    }
+
+    public List<Pessoa> buscarPorIdade(Integer idade) {
+        return repository.findByIdade(idade);
+    }
+
+    public Page<Pessoa> listarPaginado(int pagina, int tamanho) {
+        return repository.findAll(PageRequest.of(pagina, tamanho));
+    }
+    
     public Pessoa salvar(Pessoa pessoa) {
         return repository.save(pessoa);
     }

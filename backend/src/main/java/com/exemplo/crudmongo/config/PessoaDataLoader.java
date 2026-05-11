@@ -18,7 +18,7 @@ public class PessoaDataLoader {
             if (repository.count() == 0) {
                 Faker faker = new Faker(new Locale("pt-BR"));
 
-                for (int i = 0; i < 500000; i++) {
+                for (int i = 0; i < 200; i++) {
                     Pessoa pessoa = new Pessoa();
                     pessoa.setNome(faker.name().fullName());
                     pessoa.setIdade(faker.number().numberBetween(18, 80));
@@ -27,9 +27,9 @@ public class PessoaDataLoader {
                     repository.save(pessoa);
                 }
 
-                System.out.println("✅ Banco de pessoas populado com 200 registros!");
+                System.out.println("Banco de pessoas populado com 200 registros!");
             } else {
-                System.out.println("ℹ️ Banco de pessoas já contém dados, não foi necessário repopular.");
+                System.out.println("Banco de pessoas ja contem dados, nao foi necessario repopular.");
             }
         };
     }

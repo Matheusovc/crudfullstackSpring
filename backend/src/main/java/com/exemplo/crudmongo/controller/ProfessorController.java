@@ -2,38 +2,39 @@ package com.exemplo.crudmongo.controller;
 
 import com.exemplo.crudmongo.Model.Professor;
 import com.exemplo.crudmongo.service.ProfessorService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import java.util.List;
-import java.util.Optional;
 
-@RestController
-@RequestMapping("/professores")
+import java.util.List;
+
+@RestController 
+@RequestMapping({"/api/professores", "/api/professor"}) 
+@CrossOrigin(origins = "*") 
+
 public class ProfessorController {
-    @Autowired
-    private ProfessorService service;
+     private final ProfessorService service; 
+
+    public ProfessorController(ProfessorService service) {
+        this.service = service;
+    }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('PROFESSOR', 'ALUNO')")
-    public List<Professor> getAll() { return service.findAll(); }
-
-    @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('PROFESSOR', 'ALUNO')")
-    public Optional<Professor> getById(@PathVariable Long id) { return service.findById(id); }
+    public List<Professor> listar() {
+        return service.listarTodas();
+    }
 
     @PostMapping
-    @PreAuthorize("hasRole('PROFESSOR')")
-    public Professor create(@RequestBody Professor professor) { return service.save(professor); }
-
+    public Professor criar(@RequestBody Professor professor) {
+        return service.salvar(professor);
+    }
+ 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('PROFESSOR')")
-    public Professor update(@PathVariable Long id, @RequestBody Professor professor) {
-        professor.setId(id);
-        return service.save(professor);
+    public Professor atualizar(@PathVariable Long id, 
+    @RequestBody Professor professor) {
+        return service.atualizar(id, professor);
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('PROFESSOR')")
-    public void delete(@PathVariable Long id) { service.deleteById(id); }
+    public void excluir(@PathVariable Long id) {
+        service.excluir(id);
+    }
 }

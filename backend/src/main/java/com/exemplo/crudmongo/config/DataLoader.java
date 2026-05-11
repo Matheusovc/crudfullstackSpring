@@ -22,17 +22,14 @@ public class DataLoader {
                     Curso curso = new Curso();
                     curso.setNome(faker.educator().course());
                     curso.setCargaHoraria(faker.number().numberBetween(20, 200));
+                    curso.setAtivo(true);
                     repository.save(curso);
                 }
 
-                System.out.println("✅ Banco de cursos populado com 200 registros!");
+                System.out.println("Banco de cursos populado com 200 registros!");
             } else {
-                System.out.println("ℹ️ Banco de cursos já contém dados, não foi necessário repopular.");
+                System.out.println("Banco de cursos ja contem dados, nao foi necessario repopular.");
             }
         };
     }
-
-
-
-    
 }

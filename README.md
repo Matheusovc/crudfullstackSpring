@@ -2,99 +2,104 @@
 
 CRUD com MongoDB Atlas
 
+## Endpoints criados e exemplos de uso
 
-## Atividade Prática
+Os endpoints das novas entidades seguem o padrão REST com autenticação JWT. Para testar operações de criação, atualização e exclusão, faça login como professor:
 
-Consulte o enunciado e veja o diagrama das entidades abaixo para realizar a atividade proposta:
+```bash
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"professor","password":"prof123"}'
+```
 
-### Enunciado
+Use o valor retornado em `token` no header:
 
-Você está desenvolvendo uma aplicação de cadastro acadêmico utilizando Java, Spring Boot e JPA. O objetivo é praticar a criação de APIs REST completas, com operações básicas de cadastro (CRUD) para diferentes entidades do domínio escolar.
+```bash
+Authorization: Bearer SEU_TOKEN
+```
 
-#### O que você deve fazer:
+### Professor
 
-1. **Estude o exemplo das entidades `Curso` e `Pessoa` já implementadas no projeto.**
-   - Analise como estão organizados os arquivos Model, Repository, Service, Controller e DataLoader.
-   - Observe como cada camada se comunica e como as operações básicas (listar, criar, atualizar, excluir) são implementadas.
+- `GET /api/professores`
+- `POST /api/professores`
+- `PUT /api/professores/{id}`
+- `DELETE /api/professores/{id}`
 
-2. **Crie mais 5 entidades seguindo exatamente o mesmo padrão:**
-   - Professor
-   - Disciplina
-   - Turma
-   - Matricula
-   - Avaliacao
+```bash
+curl -X POST http://localhost:8080/api/professores \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer SEU_TOKEN" \
+  -d '{"nome":"Professor Teste","area":"Fisica","ativo":true}'
+```
 
-   Para cada entidade, implemente:
-   - Model (com atributos e anotações JPA)
-   - Repository (interface estendendo JpaRepository)
-   - Service (lógica de negócio, CRUD)
-   - Controller (endpoints REST)
-   - DataLoader (popular dados fake para testes)
+### Disciplina
 
-3. **Teste todos os endpoints utilizando o Postman ou outra ferramenta de sua preferência.**
-   - Garanta que é possível criar, listar, atualizar e excluir registros de cada entidade.
+- `GET /api/disciplinas`
+- `POST /api/disciplinas`
+- `PUT /api/disciplinas/{id}`
+- `DELETE /api/disciplinas/{id}`
 
-4. **Documente no final do arquivo quais endpoints você criou e exemplos de uso.**
+```bash
+curl -X POST http://localhost:8080/api/disciplinas \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer SEU_TOKEN" \
+  -d '{"nome":"Disciplina Teste","cargaHoraria":60,"professorId":1,"ativo":true}'
+```
 
-#### Dicas:
-- Use nomes e tipos de atributos coerentes com o contexto de cada entidade.
-- Siga o padrão de organização do projeto para facilitar a manutenção e entendimento do código.
-- Não implemente pesquisa e paginação nesta branch (isso será feito em outra etapa).
+### Turma
 
----
+- `GET /api/turmas`
+- `POST /api/turmas`
+- `PUT /api/turmas/{id}`
+- `DELETE /api/turmas/{id}`
 
+```bash
+curl -X POST http://localhost:8080/api/turmas \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer SEU_TOKEN" \
+  -d '{"nome":"Turma Teste","ano":2026,"ativo":true}'
+```
 
-### Diagrama das Entidades
+### Matricula
 
-> **Atenção:** O diagrama abaixo utiliza sintaxe Mermaid. O GitHub pode não renderizar automaticamente para todos os usuários ou tipos de diagrama. Caso não visualize o diagrama, copie o bloco abaixo e cole no [Mermaid Live Editor](https://mermaid.live/) para visualização gráfica.
+- `GET /api/matriculas`
+- `POST /api/matriculas`
+- `PUT /api/matriculas/{id}`
+- `DELETE /api/matriculas/{id}`
 
-```mermaid
-  erDiagram
-    TURMA {
-        Long id
-        String nome
-        int ano
-        boolean ativo
-    }
-    MATRICULA {
-        Long id
-        Long pessoaId
-        Long cursoId
-        String dataMatricula
-        boolean ativo
-    }
-    AVALIACAO {
-        Long id
-        Long pessoaId
-        Long disciplinaId
-        double nota
-        String data
-        boolean ativo
-    }
-    PESSOA {
-        Long id
-        String nome
-        int ano
-    }
-    DISCIPLINA {
-        Long id
-    }
+```bash
+curl -X POST http://localhost:8080/api/matriculas \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer SEU_TOKEN" \
+  -d '{"pessoaId":1,"cursoId":1,"dataMatricula":"2026-05-10","ativo":true}'
+```
 
-        PESSOA ||--o{ MATRICULA : faz
-    CURSO ||--o{ MATRICULA : possui
-    PESSOA ||--o{ AVALIACAO : recebe
-    DISCIPLINA ||--o{ AVALIACAO : compoe
-    TURMA ||--o{ PESSOA : agrupa
-    PROFESSOR ||--o{ DISCIPLINA : ministra
-    
-        CURSO {
-            Long id
-            String nome
-            boolean ativo
-        }
-        PROFESSOR {
-            Long id
-            String nome
-            String area
-            boolean ativo
-        }
+### Avaliacao
+
+- `GET /api/avaliacoes`
+- `POST /api/avaliacoes`
+- `PUT /api/avaliacoes/{id}`
+- `DELETE /api/avaliacoes/{id}`
+
+```bash
+curl -X POST http://localhost:8080/api/avaliacoes \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer SEU_TOKEN" \
+  -d '{"pessoaId":1,"disciplinaId":1,"nota":8.5,"data":"2026-05-10","ativo":true}'
+```
+
+Exemplo de atualização:
+
+```bash
+curl -X PUT http://localhost:8080/api/turmas/1 \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer SEU_TOKEN" \
+  -d '{"nome":"Turma Atualizada","ano":2027,"ativo":false}'
+```
+
+Exemplo de exclusão:
+
+```bash
+curl -X DELETE http://localhost:8080/api/turmas/1 \
+  -H "Authorization: Bearer SEU_TOKEN"
+```
