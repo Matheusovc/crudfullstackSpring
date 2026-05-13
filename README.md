@@ -1,100 +1,75 @@
-# Backend Spring Boot
+# crudfullstackSpring — Projeto de Microserviços
 
-CRUD com MongoDB Atlas
+## 📋 Visão Geral
+Projeto educacional demonstrando arquitetura de microserviços com Spring Boot.
 
+## 🏗️ Arquitetura
+```text
+[ cliente / frontend :4200 ]
+│
+▼
+[ gateway-service :8080 ]  ← ponto de entrada único
+│    │    │    │    │
+▼    ▼    ▼    ▼    ▼
+:8081 :8082 :8083 :8084 :8085 :8086
+matr  pess  curs  disc  prof  turma
+```
 
-## Atividade Prática
+## 🚀 Como executar
 
-Consulte o enunciado e veja o diagrama das entidades abaixo para realizar a atividade proposta:
+### Com Docker (todos os serviços de uma vez):
+```bash
+docker-compose up --build
+```
 
-### Enunciado
+### Individualmente (desenvolvimento):
 
-Você está desenvolvendo uma aplicação de cadastro acadêmico utilizando Java, Spring Boot e JPA. O objetivo é praticar a criação de APIs REST completas, com operações básicas de cadastro (CRUD) para diferentes entidades do domínio escolar.
+```bash
+cd microservicos/matricula-service && mvn spring-boot:run
+cd microservicos/pessoa-service    && mvn spring-boot:run
+cd microservicos/curso-service     && mvn spring-boot:run
+cd microservicos/disciplina-service && mvn spring-boot:run
+cd microservicos/professor-service && mvn spring-boot:run
+cd microservicos/turma-service     && mvn spring-boot:run
+cd microservicos/gateway-service   && mvn spring-boot:run
+```
 
-#### O que você deve fazer:
+## 📡 Serviços e Endpoints
 
-1. **Estude o exemplo das entidades `Curso` e `Pessoa` já implementadas no projeto.**
-   - Analise como estão organizados os arquivos Model, Repository, Service, Controller e DataLoader.
-   - Observe como cada camada se comunica e como as operações básicas (listar, criar, atualizar, excluir) são implementadas.
+| Serviço | Porta | Base URL | H2 Console |
+| --- | --- | --- | --- |
+| gateway-service | 8080 | /gateway/{entidade}s | — |
+| matricula-service | 8081 | /api/matriculas | /h2-console |
+| pessoa-service | 8082 | /api/pessoas | /h2-console |
+| curso-service | 8083 | /api/cursos | /h2-console |
+| disciplina-service | 8084 | /api/disciplinas | /h2-console |
+| professor-service | 8085 | /api/professores | /h2-console |
+| turma-service | 8086 | /api/turmas | /h2-console |
 
-2. **Crie mais 5 entidades seguindo exatamente o mesmo padrão:**
-   - Professor
-   - Disciplina
-   - Turma
-   - Matricula
-   - Avaliacao
+## 🔄 Alterações realizadas (histórico da atividade)
 
-   Para cada entidade, implemente:
-   - Model (com atributos e anotações JPA)
-   - Repository (interface estendendo JpaRepository)
-   - Service (lógica de negócio, CRUD)
-   - Controller (endpoints REST)
-   - DataLoader (popular dados fake para testes)
+### Nível 1 — Novos microserviços criados
 
-3. **Teste todos os endpoints utilizando o Postman ou outra ferramenta de sua preferência.**
-   - Garanta que é possível criar, listar, atualizar e excluir registros de cada entidade.
+- **`pessoa-service`** (porta 8082): CRUD completo de Pessoa (nome, email, cpf, dataNascimento, ativo). Consultas por email e CPF.
+- **`curso-service`** (porta 8083): CRUD completo de Curso (nome, descrição, cargaHoraria, ativo).
+- **`disciplina-service`** (porta 8084): CRUD completo de Disciplina (nome, cargaHoraria, cursoId, ativo). Consulta por cursoId.
+- **`professor-service`** (porta 8085): CRUD completo de Professor (nome, email, especialidade, ativo). Consulta por especialidade.
 
-4. **Documente no final do arquivo quais endpoints você criou e exemplos de uso.**
+### Nível 2 — Comunicação entre serviços
 
-#### Dicas:
-- Use nomes e tipos de atributos coerentes com o contexto de cada entidade.
-- Siga o padrão de organização do projeto para facilitar a manutenção e entendimento do código.
-- Não implemente pesquisa e paginação nesta branch (isso será feito em outra etapa).
+- **`matricula-service`** ganhou o endpoint `GET /api/matriculas/{id}/detalhada` que retorna `MatriculaDetalhadaDTO` enriquecido com `nomePessoa` (buscado do pessoa-service :8082) e `nomeCurso` (buscado do curso-service :8083) via `RestTemplate`.
+- Adicionado `RestTemplateConfig.java` para configurar o bean `RestTemplate`.
 
----
+### Nível 3 — Tratamento de erros
 
+- **`GlobalExceptionHandler.java`** adicionado em todos os microserviços: captura `RuntimeException` e `Exception` e retorna JSON padronizado com `status`, `mensagem` e `timestamp` em vez da Whitelabel Error Page padrão do Spring.
+- **Fallback de resiliência:** se `pessoa-service` ou `curso-service` estiver fora do ar, o endpoint `/detalhada` retorna `"indisponível"` no campo correspondente em vez de propagar o erro.
 
-### Diagrama das Entidades
+### Nível 4 — Docker
 
-> **Atenção:** O diagrama abaixo utiliza sintaxe Mermaid. O GitHub pode não renderizar automaticamente para todos os usuários ou tipos de diagrama. Caso não visualize o diagrama, copie o bloco abaixo e cole no [Mermaid Live Editor](https://mermaid.live/) para visualização gráfica.
+- `Dockerfile` criado para cada microserviço usando build multi-stage (Maven + JRE slim).
+- `docker-compose.yml` atualizado para incluir todos os 6 microserviços além do backend e frontend já existentes. Todos na rede `app-network`. Comando: `docker-compose up --build`.
 
-```mermaid
-  erDiagram
-    TURMA {
-        Long id
-        String nome
-        int ano
-        boolean ativo
-    }
-    MATRICULA {
-        Long id
-        Long pessoaId
-        Long cursoId
-        String dataMatricula
-        boolean ativo
-    }
-    AVALIACAO {
-        Long id
-        Long pessoaId
-        Long disciplinaId
-        double nota
-        String data
-        boolean ativo
-    }
-    PESSOA {
-        Long id
-        String nome
-        int ano
-    }
-    DISCIPLINA {
-        Long id
-    }
+### Nível 5 — API Gateway
 
-        PESSOA ||--o{ MATRICULA : faz
-    CURSO ||--o{ MATRICULA : possui
-    PESSOA ||--o{ AVALIACAO : recebe
-    DISCIPLINA ||--o{ AVALIACAO : compoe
-    TURMA ||--o{ PESSOA : agrupa
-    PROFESSOR ||--o{ DISCIPLINA : ministra
-    
-        CURSO {
-            Long id
-            String nome
-            boolean ativo
-        }
-        PROFESSOR {
-            Long id
-            String nome
-            String area
-            boolean ativo
-        }
+- **`gateway-service`** (porta 8080) criado como ponto de entrada único. Roteia requisições GET/POST/PUT/DELETE para todos os microserviços via `RestTemplate`. Implementado sem dependências externas (apenas `spring-boot-starter-web`).
