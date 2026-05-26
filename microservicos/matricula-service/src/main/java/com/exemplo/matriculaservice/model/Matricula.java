@@ -3,12 +3,12 @@ package com.exemplo.matriculaservice.model;
 import jakarta.persistence.*;
 
 /**
- * Entidade Matricula ? pertence exclusivamente a este microserviço.
+ * Entidade Matricula ? pertence exclusivamente a este microserviÃ§o.
  *
- * IMPORTANTE: em microserviços, NÃO usamos @ManyToOne com outras entidades
- * de outros serviços. Em vez disso, guardamos apenas os IDs (pessoaId, cursoId).
- * A consulta ao nome da pessoa ou curso é feita via chamada REST ao
- * respectivo serviço, se necessário.
+ * IMPORTANTE: em microserviÃ§os, NÃƒO usamos @ManyToOne com outras entidades
+ * de outros serviÃ§os. Em vez disso, guardamos apenas os IDs (pessoaId, cursoId).
+ * A consulta ao nome da pessoa ou curso Ã© feita via chamada REST ao
+ * respectivo serviÃ§o, se necessÃ¡rio.
  */
 @Entity
 @Table(name = "matricula")
@@ -18,10 +18,10 @@ public class Matricula {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Referência ao microserviço de Pessoas (apenas o ID, sem @ManyToOne)
+    // ReferÃªncia ao microserviÃ§o de Pessoas (apenas o ID, sem @ManyToOne)
     private Long pessoaId;
 
-    // Referência ao microserviço de Cursos (apenas o ID, sem @ManyToOne)
+    // ReferÃªncia ao microserviÃ§o de Cursos (apenas o ID, sem @ManyToOne)
     private Long cursoId;
 
     private String dataMatricula;

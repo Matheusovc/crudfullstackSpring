@@ -1,0 +1,28 @@
+# Backend .dockerignore
+# Evita copiar artefatos de build locais para dentro do container
+
+# Maven build output — é gerado dentro do Docker
+target/
+
+# Arquivos de IDE
+.idea/
+.vscode/
+*.iml
+
+# Arquivos do sistema
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Arquivos sensíveis
+.env
+*.secret
+
+# Documentação
+*.md
+ENDPOINTS.md
+
+# Diretório de recursos alternativo (não é o principal)
+resource/

@@ -4,6 +4,7 @@
 /frontend/dist/
 /frontend/out-tsc/
 /backend/target/
+/microservicos/**/target/
 /backend/.mvn/
 /**/build/
 /**/dist/

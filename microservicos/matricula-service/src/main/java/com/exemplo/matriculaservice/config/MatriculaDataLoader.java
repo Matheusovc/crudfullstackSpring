@@ -7,8 +7,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Carrega dados iniciais no banco H2 ao subir o microserviço.
- * Útil para testes e demonstrações.
+ * Carrega dados iniciais no banco H2 ao subir o microserviÃ§o.
+ * Ãštil para testes e demonstraÃ§Ãµes.
  */
 @Configuration
 public class MatriculaDataLoader {

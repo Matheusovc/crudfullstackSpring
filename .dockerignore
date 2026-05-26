@@ -1,5 +1,57 @@
-node_modules
-dist
-.git
+# =============================================================================
+# .dockerignore — raiz do projeto
+# Evita copiar arquivos desnecessários para o contexto de build do Docker
+# =============================================================================
+
+# Dependências e artefatos de build
+**/node_modules/
+**/target/
+**/.mvn/
+**/dist/
+**/.gradle/
+**/build/
+
+# Controle de versão
+.git/
+.gitignore
+.github/
+
+# Configuração de IDEs
+.idea/
+.vscode/
+*.iml
+*.class
+
+# Logs
 *.log
-*.ps1
+logs/
+
+# Segredos — nunca incluir no contexto de build
+.env
+**/*.env
+*.secret
+*.key
+*.pem
+*.jks
+*.p12
+
+# Documentação e arquivos de desenvolvimento
+*.md
+DOCUMENTACAO.md
+README.md
+diagramas/
+backend/prompts/
+
+# Arquivos do sistema operacional
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Scripts locais de desenvolvimento
+microservicos/start-all.sh
+
+# Arquivos temporários
+*.tmp
+*.temp
+*.swp
+*.swo

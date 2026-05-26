@@ -1,29 +1,359 @@
+# =============================================================================
+# Sistema de Cadastro Acadêmico — Docker Compose
+# =============================================================================
+#
+# Serviços:
+#   frontend          → Angular 15 + Nginx         → http://localhost:4200
+#   app               → Spring Boot Monolítico      → http://localhost:8080
+#   api-gateway       → Spring Cloud Gateway        → http://localhost:8087
+#   matricula-service → Microserviço Matrícula      → http://localhost:8081
+#   pessoa-service    → Microserviço Pessoa         → http://localhost:8082
+#   curso-service     → Microserviço Curso          → http://localhost:8083
+#   disciplina-service→ Microserviço Disciplina     → http://localhost:8084
+#   professor-service → Microserviço Professor      → http://localhost:8085
+#   turma-service     → Microserviço Turma          → http://localhost:8086
+#   auth-service      → Microserviço Auth/JWT       → http://localhost:8089
+#   aluno-service     → Microserviço Aluno          → http://localhost:8088
+#
+# NOTA DE PORTAS:
+#   auth-service e turma-service usam a mesma porta interna (8086).
+#   aluno-service e disciplina-service usam a mesma porta interna (8084).
+#   No Docker isso não é conflito — cada container tem IP isolado.
+#   O mapeamento de host usa portas distintas para evitar conflito no host.
+#
+# PERSISTÊNCIA:
+#   Todos os serviços usam H2 file-based (não in-memory) com volumes Docker.
+#   Os dados sobrevivem ao restart dos containers.
+#
+# EXECUÇÃO:
+#   cp .env.example .env          # configure antes da primeira execução
+#   docker-compose up --build     # sobe tudo
+#   docker-compose down -v        # derruba e apaga volumes
+# =============================================================================
+
+name: sistema-academico
+
 services:
-  # Backend - Spring Boot
-  app:
-    build:
-      context: ./backend
-    container_name: crud-springboot
-    ports:
-      - "8080:8080"
-    environment:
-      - SPRING_DATA_MONGODB_URI=mongodb+srv://usuariodobanco:senha@cluster0.datgvgs.mongodb.net/nomedobanco?retryWrites=true&w=majority
 
-    networks:
-      - app-network
-
-  # Frontend - Angular com Nginx configurado para redirecionar /api para o backend
+  # ---------------------------------------------------------------------------
+  # FRONTEND — Angular 15 servido via Nginx
+  # ---------------------------------------------------------------------------
   frontend:
     build:
       context: ./frontend
-    container_name: angular-app
+      dockerfile: Dockerfile
+    container_name: frontend
+    restart: unless-stopped
     ports:
       - "4200:80"
     depends_on:
-      - app
+      app:
+        condition: service_healthy
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q http://127.0.0.1:80/ -O /dev/null || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
+  # ---------------------------------------------------------------------------
+  # BACKEND MONOLÍTICO — Spring Boot (H2 file + Swagger + JWT)
+  # ---------------------------------------------------------------------------
+  app:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: crud-springboot
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:h2:file:/data/crudmongo
+      SPRING_H2_CONSOLE_SETTINGS_WEBALLOWOTHERS: "true"
+    volumes:
+      - backend-data:/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q http://127.0.0.1:8080/h2-console -O /dev/null || exit 1"]
+      interval: 30s
+      timeout: 15s
+      retries: 5
+      start_period: 90s
+
+  # ---------------------------------------------------------------------------
+  # MICROSERVIÇOS — cada serviço gerencia seu próprio banco H2
+  # ---------------------------------------------------------------------------
+
+  pessoa-service:
+    build:
+      context: ./microservicos/pessoa-service
+      dockerfile: Dockerfile
+    container_name: pessoa-service
+    restart: unless-stopped
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:h2:file:/data/pessoadb
+      SPRING_H2_CONSOLE_SETTINGS_WEBALLOWOTHERS: "true"
+    volumes:
+      - pessoa-data:/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q http://127.0.0.1:8082/h2-console -O /dev/null || exit 1"]
+      interval: 30s
+      timeout: 15s
+      retries: 5
+      start_period: 90s
+
+  curso-service:
+    build:
+      context: ./microservicos/curso-service
+      dockerfile: Dockerfile
+    container_name: curso-service
+    restart: unless-stopped
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:h2:file:/data/cursodb
+      SPRING_H2_CONSOLE_SETTINGS_WEBALLOWOTHERS: "true"
+    volumes:
+      - curso-data:/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q http://127.0.0.1:8083/h2-console -O /dev/null || exit 1"]
+      interval: 30s
+      timeout: 15s
+      retries: 5
+      start_period: 90s
+
+  disciplina-service:
+    build:
+      context: ./microservicos/disciplina-service
+      dockerfile: Dockerfile
+    container_name: disciplina-service
+    restart: unless-stopped
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:h2:file:/data/disciplinadb
+      SPRING_H2_CONSOLE_SETTINGS_WEBALLOWOTHERS: "true"
+    volumes:
+      - disciplina-data:/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q http://127.0.0.1:8084/h2-console -O /dev/null || exit 1"]
+      interval: 30s
+      timeout: 15s
+      retries: 5
+      start_period: 90s
+
+  professor-service:
+    build:
+      context: ./microservicos/professor-service
+      dockerfile: Dockerfile
+    container_name: professor-service
+    restart: unless-stopped
+    ports:
+      - "8085:8085"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:h2:file:/data/professordb
+      SPRING_H2_CONSOLE_SETTINGS_WEBALLOWOTHERS: "true"
+    volumes:
+      - professor-data:/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q http://127.0.0.1:8085/h2-console -O /dev/null || exit 1"]
+      interval: 30s
+      timeout: 15s
+      retries: 5
+      start_period: 90s
+
+  turma-service:
+    build:
+      context: ./microservicos/turma-service
+      dockerfile: Dockerfile
+    container_name: turma-service
+    restart: unless-stopped
+    ports:
+      - "8086:8086"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:h2:file:/data/turmadb
+      SPRING_H2_CONSOLE_SETTINGS_WEBALLOWOTHERS: "true"
+    volumes:
+      - turma-data:/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q http://127.0.0.1:8086/h2-console -O /dev/null || exit 1"]
+      interval: 30s
+      timeout: 15s
+      retries: 5
+      start_period: 90s
+
+  # auth-service usa porta interna 8086 (igual ao turma-service).
+  # Sem conflito no Docker — containers são isolados.
+  # No host é acessível na porta 8089.
+  auth-service:
+    build:
+      context: ./microservicos/auth-service
+      dockerfile: Dockerfile
+    container_name: auth-service
+    restart: unless-stopped
+    ports:
+      - "8089:8086"
+    env_file:
+      - .env
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:h2:file:/data/authdb
+      SPRING_H2_CONSOLE_SETTINGS_WEBALLOWOTHERS: "true"
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-3600000}
+    volumes:
+      - auth-data:/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q http://127.0.0.1:8086/h2-console -O /dev/null || exit 1"]
+      interval: 30s
+      timeout: 15s
+      retries: 5
+      start_period: 90s
+
+  # aluno-service usa porta interna 8084 (igual ao disciplina-service).
+  # No host é acessível na porta 8088.
+  aluno-service:
+    build:
+      context: ./microservicos/aluno-service
+      dockerfile: Dockerfile
+    container_name: aluno-service
+    restart: unless-stopped
+    ports:
+      - "8088:8084"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:h2:file:/data/alunodb
+      SPRING_H2_CONSOLE_SETTINGS_WEBALLOWOTHERS: "true"
+    volumes:
+      - aluno-data:/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q http://127.0.0.1:8084/h2-console -O /dev/null || exit 1"]
+      interval: 30s
+      timeout: 15s
+      retries: 5
+      start_period: 90s
+
+  # matricula-service só sobe depois que pessoa e curso estão saudáveis
+  # (dependência real: chama as APIs desses serviços)
+  matricula-service:
+    build:
+      context: ./microservicos/matricula-service
+      dockerfile: Dockerfile
+    container_name: matricula-service
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:h2:file:/data/matriculadb
+      SPRING_H2_CONSOLE_SETTINGS_WEBALLOWOTHERS: "true"
+      PESSOA_SERVICE_URL: http://pessoa-service:8082/api/pessoas
+      CURSO_SERVICE_URL: http://curso-service:8083/api/cursos
+    volumes:
+      - matricula-data:/data
+    depends_on:
+      pessoa-service:
+        condition: service_healthy
+      curso-service:
+        condition: service_healthy
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q http://127.0.0.1:8081/h2-console -O /dev/null || exit 1"]
+      interval: 30s
+      timeout: 15s
+      retries: 5
+      start_period: 90s
+
+  # api-gateway só sobe quando todos os microserviços estão prontos
+  api-gateway:
+    build:
+      context: ./microservicos/api-gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    restart: unless-stopped
+    ports:
+      - "8087:8080"
+    environment:
+      MATRICULA_SERVICE_URI: http://matricula-service:8081
+      PESSOA_SERVICE_URI:    http://pessoa-service:8082
+      CURSO_SERVICE_URI:     http://curso-service:8083
+      DISCIPLINA_SERVICE_URI: http://disciplina-service:8084
+      PROFESSOR_SERVICE_URI: http://professor-service:8085
+      TURMA_SERVICE_URI:     http://turma-service:8086
+      AUTH_SERVICE_URI:      http://auth-service:8086
+      ALUNO_SERVICE_URI:     http://aluno-service:8084
+    depends_on:
+      pessoa-service:
+        condition: service_healthy
+      curso-service:
+        condition: service_healthy
+      disciplina-service:
+        condition: service_healthy
+      professor-service:
+        condition: service_healthy
+      turma-service:
+        condition: service_healthy
+      matricula-service:
+        condition: service_healthy
+      auth-service:
+        condition: service_healthy
+      aluno-service:
+        condition: service_healthy
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q http://127.0.0.1:8080/actuator/health -O /dev/null || exit 1"]
+      interval: 30s
+      timeout: 15s
+      retries: 5
+      start_period: 120s
+
+# =============================================================================
+# REDES
+# =============================================================================
 networks:
   app-network:
     driver: bridge
+    name: sistema-academico-network
+
+# =============================================================================
+# VOLUMES — H2 file-based: dados persistem entre restarts
+# =============================================================================
+volumes:
+  backend-data:
+    driver: local
+  pessoa-data:
+    driver: local
+  curso-data:
+    driver: local
+  disciplina-data:
+    driver: local
+  professor-data:
+    driver: local
+  turma-data:
+    driver: local
+  matricula-data:
+    driver: local
+  auth-data:
+    driver: local
+  aluno-data:
+    driver: local

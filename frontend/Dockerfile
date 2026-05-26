@@ -1,23 +1,34 @@
-# Etapa 1: build do Angular
-FROM node:18 as build-stage
+# =============================================================================
+# Frontend Angular 15 — Dockerfile (multi-stage build)
+# =============================================================================
+# Stage 1: Compila o Angular com Node.js
+# Stage 2: Serve os arquivos estáticos com Nginx Alpine
+# =============================================================================
+
+# ─── Stage 1: Build Angular ───────────────────────────────────────────────────
+FROM node:18-alpine AS build-stage
+
 WORKDIR /app
 
-# Copia os arquivos de dependência primeiro
+# Copia os manifestos de dependências primeiro (cache de camadas)
 COPY package*.json ./
 
-# Instala dependências e Angular CLI
+# Instala dependências (--legacy-peer-deps para Angular 15)
 RUN npm install --legacy-peer-deps
-RUN npm install -g @angular/cli
 
-# Copia o restante do código
+# Copia o código-fonte e compila em modo produção
 COPY . .
+RUN npx ng build --configuration production
 
-# Compila o projeto Angular
-RUN ng build --configuration production
+# ─── Stage 2: Nginx para servir os arquivos compilados ────────────────────────
+FROM nginx:1.25-alpine
 
-# Etapa 2: nginx para servir os arquivos Angular compilados
-FROM nginx:alpine
-COPY --from=build-stage /app/dist/* /usr/share/nginx/html/
+# Copia a configuração customizada do Nginx
 COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# O outputPath do Angular 15 é dist/frontend/ (conforme angular.json)
+COPY --from=build-stage /app/dist/frontend/ /usr/share/nginx/html/
+
 EXPOSE 80
+
 CMD ["nginx", "-g", "daemon off;"]

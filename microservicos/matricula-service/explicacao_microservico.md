@@ -362,22 +362,69 @@ Quando aparecer `Started MatriculaServiceApplication in X.XX seconds`, o serviç
 
 ## 🧪 Testando na prática
 
-### Ver todas as matrículas
-```http
-GET http://localhost:8081/api/matriculas
+Antes de testar pelo Postman, Insomnia ou navegador, suba os serviços principais. Você pode abrir um terminal para cada serviço:
+
+```bash
+cd microservicos/pessoa-service
+mvn spring-boot:run
 ```
 
-### Ver matrículas de uma pessoa
-```http
-GET http://localhost:8081/api/matriculas/pessoa/1
+```bash
+cd microservicos/curso-service
+mvn spring-boot:run
 ```
 
-### Criar uma nova matrícula
-```http
-POST http://localhost:8081/api/matriculas
-Content-Type: application/json
+```bash
+cd microservicos/matricula-service
+mvn spring-boot:run
+```
 
+Ou subir tudo pelo script:
+
+```bash
+chmod +x microservicos/start-all.sh
+./microservicos/start-all.sh
+```
+
+### 1. Testar os serviços isolados
+
+Cada serviço responde sozinho, na própria porta:
+
+| Serviço | URL de teste |
+|---------|--------------|
+| Matrículas | `GET http://localhost:8081/api/matriculas` |
+| Pessoas | `GET http://localhost:8082/api/pessoas` |
+| Cursos | `GET http://localhost:8083/api/cursos` |
+| Disciplinas | `GET http://localhost:8084/api/disciplinas` |
+| Professores | `GET http://localhost:8085/api/professores` |
+| Turmas | `GET http://localhost:8086/api/turmas` |
+
+Exemplo com `curl`:
+
+```bash
+curl http://localhost:8082/api/pessoas
+curl http://localhost:8083/api/cursos
+curl http://localhost:8081/api/matriculas
+```
+
+### 2. Criar uma matrícula
+
+```bash
+curl -X POST http://localhost:8081/api/matriculas \
+  -H "Content-Type: application/json" \
+  -d '{
+    "pessoaId": 1,
+    "cursoId": 2,
+    "dataMatricula": "2024-05-11",
+    "ativo": true
+  }'
+```
+
+Resposta esperada:
+
+```json
 {
+  "id": 5,
   "pessoaId": 1,
   "cursoId": 2,
   "dataMatricula": "2024-05-11",
@@ -385,9 +432,105 @@ Content-Type: application/json
 }
 ```
 
-### Cancelar uma matrícula (sem apagar do banco)
-```http
-PATCH http://localhost:8081/api/matriculas/1/desativar
+### 3. Ver uma matrícula detalhada
+
+O `matricula-service` guarda apenas `pessoaId` e `cursoId`, mas ao buscar uma matrícula por ID ele consulta o `pessoa-service` e o `curso-service` via HTTP para montar uma resposta mais rica:
+
+```bash
+curl http://localhost:8081/api/matriculas/1
+```
+
+Resposta esperada:
+
+```json
+{
+  "id": 1,
+  "pessoaId": 1,
+  "nomePessoa": "Ana Silva",
+  "cursoId": 1,
+  "nomeCurso": "Sistemas de Informacao",
+  "dataMatricula": "2024-01-10",
+  "ativo": true
+}
+```
+
+### 4. Testar o fallback
+
+Pare o `pessoa-service` e chame novamente:
+
+```bash
+curl http://localhost:8081/api/matriculas/1
+```
+
+O `matricula-service` continua respondendo, mas usa fallback:
+
+```json
+{
+  "id": 1,
+  "pessoaId": 1,
+  "nomePessoa": "indisponível",
+  "cursoId": 1,
+  "nomeCurso": "Sistemas de Informacao",
+  "dataMatricula": "2024-01-10",
+  "ativo": true
+}
+```
+
+### 5. Testar o tratamento de erro
+
+```bash
+curl http://localhost:8081/api/matriculas/999
+```
+
+Resposta esperada:
+
+```json
+{
+  "status": 404,
+  "mensagem": "Matricula nao encontrada: 999",
+  "timestamp": "2026-05-26T10:15:30.123"
+}
+```
+
+### 6. Cancelar uma matrícula sem apagar do banco
+
+```bash
+curl -X PATCH http://localhost:8081/api/matriculas/1/desativar
+```
+
+Depois confira:
+
+```bash
+curl http://localhost:8081/api/matriculas
+```
+
+### 7. Testar pelo API Gateway
+
+Com o `api-gateway` rodando na porta `8080`, todas as APIs também ficam acessíveis por uma porta única:
+
+```bash
+curl http://localhost:8080/api/matriculas
+curl http://localhost:8080/api/pessoas
+curl http://localhost:8080/api/cursos
+curl http://localhost:8080/api/disciplinas
+curl http://localhost:8080/api/professores
+curl http://localhost:8080/api/turmas
+```
+
+### 8. Testar com Docker
+
+Na raiz do projeto:
+
+```bash
+docker-compose up --build
+```
+
+Como o monolito antigo já usa a porta `8080`, no Docker o gateway foi publicado na porta `8087` do computador:
+
+```bash
+curl http://localhost:8087/api/matriculas
+curl http://localhost:8087/api/pessoas
+curl http://localhost:8087/api/cursos
 ```
 
 ---
@@ -501,7 +644,7 @@ Exemplo do retorno esperado:
 
 > **Objetivo:** empacotar cada microserviço em um container Docker e orquestrá-los juntos.
 
-**Desafio:** crie um `Dockerfile` para o `matricula-service` e adicione-o ao `docker-compose.yml` da raiz do projeto, de forma que todos os serviços subam com um único comando:
+**Desafio:** crie um `Dockerfile` para cada microserviço e adicione todos ao `docker-compose.yml` da raiz do projeto, de forma que o bairro inteiro suba com um único comando:
 
 ```bash
 docker-compose up --build
@@ -517,17 +660,17 @@ docker-compose up --build
 
 **Opção A — Spring Cloud Gateway** *(recomendada)*
 
-Cria um novo projeto `gateway-service` com Spring Cloud Gateway e configura as rotas no `application.properties`:
+Cria um novo projeto `api-gateway` com Spring Cloud Gateway e configura as rotas no `application.properties`:
 
 ```properties
 server.port=8080
 spring.cloud.gateway.routes[0].id=matricula
 spring.cloud.gateway.routes[0].uri=http://localhost:8081
-spring.cloud.gateway.routes[0].predicates[0]=Path=/matriculas/**
+spring.cloud.gateway.routes[0].predicates[0]=Path=/api/matriculas/**
 
 spring.cloud.gateway.routes[1].id=pessoa
 spring.cloud.gateway.routes[1].uri=http://localhost:8082
-spring.cloud.gateway.routes[1].predicates[0]=Path=/pessoas/**
+spring.cloud.gateway.routes[1].predicates[0]=Path=/api/pessoas/**
 ```
 
 ---

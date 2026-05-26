@@ -7,18 +7,18 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 /**
- * Repositório JPA do microserviço de Matrículas.
- * Herda todos os métodos CRUD de JpaRepository.
+ * RepositÃ³rio JPA do microserviÃ§o de MatrÃ­culas.
+ * Herda todos os mÃ©todos CRUD de JpaRepository.
  */
 @Repository
 public interface MatriculaRepository extends JpaRepository<Matricula, Long> {
 
-    // Consulta customizada: buscar todas as matrículas de uma pessoa
+    // Consulta customizada: buscar todas as matrÃ­culas de uma pessoa
     List<Matricula> findByPessoaId(Long pessoaId);
 
-    // Consulta customizada: buscar todas as matrículas de um curso
+    // Consulta customizada: buscar todas as matrÃ­culas de um curso
     List<Matricula> findByCursoId(Long cursoId);
 
-    // Consulta customizada: buscar matrículas ativas
+    // Consulta customizada: buscar matrÃ­culas ativas
     List<Matricula> findByAtivo(boolean ativo);
 }
