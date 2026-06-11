@@ -42,7 +42,7 @@ public class AuthController {
             response.put("role", role);
             return response;
         } catch (AuthenticationException e) {
-            throw new RuntimeException("Usuário ou senha inválidos");
+            throw new RuntimeException("UsuÃ¡rio ou senha invÃ¡lidos");
         }
     }
 
@@ -52,9 +52,9 @@ public class AuthController {
         String password = body.get("password");
         String role = body.getOrDefault("role", "ALUNO");
         if (!role.equals("ALUNO") && !role.equals("PROFESSOR")) {
-            throw new RuntimeException("Role inválida. Use ALUNO ou PROFESSOR.");
+            throw new RuntimeException("Role invÃ¡lida. Use ALUNO ou PROFESSOR.");
         }
         usuarioService.salvarUsuario(username, password, role);
-        return Map.of("message", "Usuário registrado com sucesso");
+        return Map.of("message", "UsuÃ¡rio registrado com sucesso");
     }
 }

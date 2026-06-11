@@ -3,7 +3,6 @@ package com.exemplo.turmaservice.controller;
 import com.exemplo.turmaservice.model.Turma;
 import com.exemplo.turmaservice.service.TurmaService;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,10 +24,9 @@ public class TurmaController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Turma> buscarPorId(@PathVariable Long id) {
+    public Turma buscarPorId(@PathVariable Long id) {
         return service.buscarPorId(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new RuntimeException("Turma nao encontrada: " + id));
     }
 
     @PostMapping

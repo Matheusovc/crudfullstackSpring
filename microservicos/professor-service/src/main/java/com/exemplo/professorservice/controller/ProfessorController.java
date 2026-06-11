@@ -3,7 +3,6 @@ package com.exemplo.professorservice.controller;
 import com.exemplo.professorservice.model.Professor;
 import com.exemplo.professorservice.service.ProfessorService;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,10 +24,9 @@ public class ProfessorController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Professor> buscarPorId(@PathVariable Long id) {
+    public Professor buscarPorId(@PathVariable Long id) {
         return service.buscarPorId(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new RuntimeException("Professor nao encontrado: " + id));
     }
 
     @PostMapping

@@ -23,13 +23,13 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
-            .headers(headers -> headers.frameOptions(frame -> frame.disable())) // necess�rio para H2 console
+            .headers(headers -> headers.frameOptions(frame -> frame.disable())) // necessário para H2 console
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                // rotas p�blicas
+                // rotas públicas
                 .requestMatchers("/api/auth/login").permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
-                // apenas PROFESSOR pode registrar novos usu�rios
+                // apenas PROFESSOR pode registrar novos usuários
                 .requestMatchers("/api/auth/register").hasRole("PROFESSOR")
                 // ALUNO e PROFESSOR podem fazer leituras
                 .requestMatchers(HttpMethod.GET, "/**").hasAnyRole("ALUNO", "PROFESSOR")
@@ -46,7 +46,7 @@ public class SecurityConfig {
     @Bean
     public FilterRegistrationBean<JwtAuthFilter> jwtFilterRegistration(JwtAuthFilter filter) {
         FilterRegistrationBean<JwtAuthFilter> registration = new FilterRegistrationBean<>(filter);
-        registration.setEnabled(false); // impede registro automático fora do Spring Security
+        registration.setEnabled(false); // impede registro automÃ¡tico fora do Spring Security
         return registration;
     }
 

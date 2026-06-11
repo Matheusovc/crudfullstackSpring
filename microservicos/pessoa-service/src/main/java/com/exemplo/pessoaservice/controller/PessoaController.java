@@ -35,10 +35,9 @@ public class PessoaController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Pessoa> buscarPorId(@PathVariable Long id) {
+    public Pessoa buscarPorId(@PathVariable Long id) {
         return service.buscarPorId(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new RuntimeException("Pessoa nao encontrada: " + id));
     }
 
     @PostMapping

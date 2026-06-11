@@ -25,7 +25,8 @@
     <!-- Define a versão do Java utilizada no projeto -->
     <properties>
         <java.version>17</java.version>
-    </properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+</properties>
     <dependencies>
         <!-- Dependência para aplicações web com Spring Boot -->
         <dependency>

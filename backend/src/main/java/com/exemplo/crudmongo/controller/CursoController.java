@@ -23,6 +23,12 @@ public class CursoController {
         return service.listarTodas();
     }
 
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('PROFESSOR', 'ALUNO')")
+    public Curso buscarPorId(@PathVariable Long id) {
+        return service.buscarPorId(id);
+    }
+
     @PostMapping
     @PreAuthorize("hasRole('PROFESSOR')")
     public Curso criar(@RequestBody Curso curso) {

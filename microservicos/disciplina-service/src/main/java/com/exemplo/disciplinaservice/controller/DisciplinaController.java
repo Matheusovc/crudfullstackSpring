@@ -3,7 +3,6 @@ package com.exemplo.disciplinaservice.controller;
 import com.exemplo.disciplinaservice.model.Disciplina;
 import com.exemplo.disciplinaservice.service.DisciplinaService;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,10 +24,9 @@ public class DisciplinaController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Disciplina> buscarPorId(@PathVariable Long id) {
+    public Disciplina buscarPorId(@PathVariable Long id) {
         return service.buscarPorId(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new RuntimeException("Disciplina nao encontrada: " + id));
     }
 
     @PostMapping

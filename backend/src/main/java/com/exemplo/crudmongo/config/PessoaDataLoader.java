@@ -18,7 +18,7 @@ public class PessoaDataLoader {
             if (repository.count() == 0) {
                 Faker faker = new Faker(new Locale("pt-BR"));
 
-                for (int i = 0; i < 500000; i++) {
+                for (int i = 0; i < 200; i++) {
                     Pessoa pessoa = new Pessoa();
                     pessoa.setNome(faker.name().fullName());
                     pessoa.setIdade(faker.number().numberBetween(18, 80));

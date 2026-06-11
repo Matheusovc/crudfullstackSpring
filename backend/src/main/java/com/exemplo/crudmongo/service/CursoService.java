@@ -28,6 +28,11 @@ public class CursoService {
         return repository.findAll();
     }
 
+    public Curso buscarPorId(Long id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Curso não encontrado"));
+    }
+
     /**
      * Salva uma nova pessoa no banco de dados.
      * @param pessoa Objeto Pessoa a ser salvo

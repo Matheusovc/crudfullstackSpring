@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/alunos")
+@RequestMapping("/api/alunos")
 @CrossOrigin(origins = "*")
 public class AlunoController {
 
@@ -28,10 +28,9 @@ public class AlunoController {
 
     /** GET /alunos/{id} → busca por ID */
     @GetMapping("/{id}")
-    public ResponseEntity<AlunoResponseDTO> buscarPorId(@PathVariable Long id) {
+    public AlunoResponseDTO buscarPorId(@PathVariable Long id) {
         return service.buscarPorId(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new RuntimeException("Aluno nao encontrado: " + id));
     }
 
     /** POST /alunos → cria novo aluno */
@@ -46,22 +45,14 @@ public class AlunoController {
     public ResponseEntity<AlunoResponseDTO> atualizar(
             @PathVariable Long id,
             @RequestBody AlunoRequestDTO dto) {
-        try {
-            return ResponseEntity.ok(service.atualizar(id, dto));
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+        return ResponseEntity.ok(service.atualizar(id, dto));
     }
 
     /** PATCH /alunos/{id}/desativar → soft delete */
     @PatchMapping("/{id}/desativar")
     public ResponseEntity<Void> desativar(@PathVariable Long id) {
-        try {
-            service.desativar(id);
-            return ResponseEntity.noContent().build();
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+        service.desativar(id);
+        return ResponseEntity.noContent().build();
     }
 
     /** DELETE /alunos/{id} → exclui aluno */

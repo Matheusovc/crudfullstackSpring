@@ -13,17 +13,17 @@ WORKDIR /app
 # Copia o pom.xml primeiro para aproveitar o cache de camadas do Docker.
 # As dependências só são baixadas novamente se o pom.xml mudar.
 COPY pom.xml .
-RUN mvn dependency:go-offline -q
+RUN mvn dependency:go-offline -q -Dhttps.protocols=TLSv1.2
 
 # Copia o código-fonte e compila o JAR
 COPY src ./src
-RUN mvn clean package -DskipTests -q
+RUN mvn clean package -DskipTests -q -Dhttps.protocols=TLSv1.2
 
 # ─── Stage 2: Runtime ─────────────────────────────────────────────────────────
-FROM eclipse-temurin:17
+FROM azul/zulu-openjdk-alpine:17-jre
 
 # Cria usuário e grupo não-root para executar a aplicação
-RUN groupadd -r spring && useradd -r -g spring spring \
+RUN addgroup -S spring && adduser -S -G spring spring \
     && mkdir -p /data && chown spring:spring /data
 
 WORKDIR /app
