@@ -18,14 +18,17 @@ POST /api/auth/login
 **Body (JSON):**
 ```json
 {
-  "username": "professor@escola.com",
-  "password": "123456"
+  "username": "professor",
+  "password": "prof123"
 }
 ```
+> Usuário ALUNO: `{"username": "aluno", "password": "aluno123"}`
+
 **Resposta:**
 ```json
 {
-  "token": "eyJhbGci..."
+  "token": "eyJhbGci...",
+  "role": "PROFESSOR"
 }
 ```
 Use o token retornado no header: `Authorization: Bearer <token>`

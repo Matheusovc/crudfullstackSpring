@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/professores")
+@RequestMapping("/api/professor")
 public class ProfessorController {
     @Autowired
     private ProfessorService service;
